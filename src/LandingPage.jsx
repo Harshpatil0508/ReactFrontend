@@ -19,7 +19,7 @@ function LandingPage() {
       }}
     >
       <Typography variant="h3" sx={{ fontWeight: 700, color: "#e91e63", mb: 2 }}>
-        Welcome to Isha's Project 💖
+        Welcome to CRUD Project
       </Typography>
       <Typography variant="h6" sx={{ mb: 4, color: "#ad1457", maxWidth: 600 }}>
         This is a simple user management dashboard where you can add, update, and delete users. 

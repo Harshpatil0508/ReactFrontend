@@ -195,7 +195,7 @@ function App() {
       >
         <Toolbar>
           <Typography variant="h5" sx={{ flexGrow: 1 }}>
-            Isha Project Dashboard
+            Project Dashboard
           </Typography>
           <IconButton color="inherit" onClick={() => setDarkMode(!darkMode)}>
             {darkMode ? <LightMode /> : <DarkMode />}
