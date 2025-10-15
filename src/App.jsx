@@ -21,7 +21,16 @@ import {
   Tooltip,
   Grid,
 } from "@mui/material";
-import { Edit, Delete, DarkMode, LightMode, People, CalendarToday } from "@mui/icons-material";
+import {
+  Edit,
+  Delete,
+  DarkMode,
+  LightMode,
+  People,
+  CalendarToday,
+  CloudUpload,
+  CloudDownload,
+} from "@mui/icons-material"; // 🔹 Added icons for import/export
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
 function App() {
@@ -32,7 +41,7 @@ function App() {
   const [darkMode, setDarkMode] = useState(false);
   const [search, setSearch] = useState("");
 
-  const apiUrl = "http://localhost:8080/api/users";
+  const apiUrl = "http://localhost:8081/api/users";
 
   const theme = useMemo(
     () =>
@@ -127,7 +136,51 @@ function App() {
 
   // Stats
   const totalUsers = users.length;
-  const avgAge = users.length ? Math.round(users.reduce((a, b) => a + Number(b.age), 0) / users.length) : 0;
+  const avgAge = users.length
+    ? Math.round(users.reduce((a, b) => a + Number(b.age), 0) / users.length)
+    : 0;
+
+  // 🔹 Import Excel
+  const handleImport = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      await axios.post(`${apiUrl}/import`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setSnack({ open: true, message: "File imported successfully!", severity: "success" });
+      fetchUsers();
+    } catch (error) {
+      setSnack({ open: true, message: "Error importing file", severity: "error" });
+    }
+  };
+
+  // 🔹 Export Excel
+  const handleExport = async () => {
+    try {
+      const response = await axios({
+        url: `${apiUrl}/export`,
+        method: "GET",
+        responseType: "blob",
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "data.xlsx");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      setSnack({ open: true, message: "File exported successfully!", severity: "success" });
+    } catch (error) {
+      setSnack({ open: true, message: "Error exporting file", severity: "error" });
+    }
+  };
 
   return (
     <ThemeProvider theme={theme}>
@@ -218,18 +271,49 @@ function App() {
 
         {/* Users List */}
         <Paper sx={{ p: 3 }}>
-          <Box sx={{ mb: 2, display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 2 }}>
+          <Box
+            sx={{
+              mb: 2,
+              display: "flex",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: 2,
+            }}
+          >
             <Typography variant="h6" sx={{ color: "primary.main", fontWeight: "bold" }}>
               👩‍💻 Users List
             </Typography>
-            <TextField
-              label="Search users..."
-              variant="outlined"
-              size="small"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              sx={{ maxWidth: 250 }}
-            />
+            <Box sx={{ display: "flex", gap: 2 }}>
+              {/* 🔹 Import Button */}
+              <Button
+                variant="outlined"
+                color="primary"
+                startIcon={<CloudUpload />}
+                component="label"
+              >
+                Import
+                <input type="file" hidden onChange={handleImport} />
+              </Button>
+
+              {/* 🔹 Export Button */}
+              <Button
+                variant="outlined"
+                color="primary"
+                startIcon={<CloudDownload />}
+                onClick={handleExport}
+              >
+                Export
+              </Button>
+
+              <TextField
+                label="Search users..."
+                variant="outlined"
+                size="small"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                sx={{ maxWidth: 250 }}
+              />
+            </Box>
           </Box>
 
           <Table sx={{ minWidth: 650 }}>
@@ -248,7 +332,8 @@ function App() {
                   key={user.id}
                   hover
                   sx={{
-                    backgroundColor: index % 2 === 0 ? (darkMode ? "#1b1b1b" : "#fff0f6") : "transparent",
+                    backgroundColor:
+                      index % 2 === 0 ? (darkMode ? "#1b1b1b" : "#fff0f6") : "transparent",
                     transition: "0.3s",
                     "&:hover": {
                       backgroundColor: darkMode ? "#2a1b28" : "#ffe4f1",
